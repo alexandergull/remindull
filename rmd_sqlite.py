@@ -48,12 +48,8 @@ class RmdDb:
 
     # REQUESTS TABLE
 
-    def query_if_record_exists(self, request_id):
+    def query_if_user_exists(self, request_id):
         """
-        Query if record with CleanTalk request ID exists.
-        Params:
-            request_id - CleanTalk request ID
-        Returns: boolean - if record exists
         """
 
         cur = self.connection.cursor()
@@ -64,18 +60,26 @@ class RmdDb:
         else:
             return False
 
-    def query_set_new_event(self, tg_user_id, event_text, event_time):
+    def query_set_new_event(self, tg_user_id, event_text, event_timestamp):
+        is_forced = False
+        forcing_period = self.execute_read_query(
+            f"""SELECT forcing_period FROM users WHERE tg_user_id = {tg_user_id}"""
+        )
+        last_forced = 0
+        initial_timestamp = event_timestamp
+        forcing_count = 0
         with self.connection:
             try:
                 cur = self.connection.cursor()
                 cur.execute(
                     """
                     INSERT INTO events
-                    (tg_user_id,event_text,event_time)
+                    (tg_user_id,event_text,event_timestamp,is_forced,forcing_period,last_forced,initial_timestamp,forcing_count)
                     VALUES
-                    (?,?,?)
+                    (?,?,?,?,?,?,?,?)
                     """,
-                    (tg_user_id, event_text, event_time)
+                    (tg_user_id, event_text, event_timestamp, is_forced,
+                     forcing_period, last_forced, initial_timestamp, forcing_count)
                 )
                 self.connection.commit()
                 print(f'Event "{event_text}" successfully saved.')
@@ -107,6 +111,7 @@ class RmdDb:
     def query_update_user(self, tg_user_id, forcing_period, timezone, user_name):
         with self.connection:
             try:
+                print(tg_user_id, forcing_period, timezone, user_name)
                 cur = self.connection.cursor()
                 cur.execute(
                     """

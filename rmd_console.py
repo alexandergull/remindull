@@ -10,9 +10,9 @@ def add_event(db):
     event_text = input('Enter event text\n')
     input_time = input('Enter event time in format of 00:00/dd/mm/yy\n')
 
-    event_time = time.mktime(datetime.datetime.strptime(input_time, "%H:%M/%d/%m/%y").timetuple())
+    event_timestamp = time.mktime(datetime.datetime.strptime(input_time, "%H:%M/%d/%m/%y").timetuple())
 
-    db.query_set_new_event(user_id, event_text, event_time)
+    db.query_set_new_event(user_id, event_text, event_timestamp)
     pass
 
 
@@ -27,13 +27,15 @@ def show_events(db):
     print(f'List of events of user_id={user_id}')
     for key in events_list:
         event = rmd_static.db_record_to_event(key)
-        print(f'Event ID: {event.id}')
+        print(f'Event ID: {event.key_id}')
         print(f'Event text: {event.text}')
         print(f'Event tg_user_id: {event.tg_user_id}')
         print(f'Event timestamp: {event.timestamp}')
         print(f'Event is forced: {event.is_forced}')
         print(f'Event forcing period: {event.forcing_period}')
-        print(f'Event last forced time: {event.last_forced}\n')
+        print(f'Event last forced time: {event.last_forced}')
+        print(f'Event initial time: {event.initial_timestamp}')
+        print(f'Event forcing count: {event.forcing_count}\n')
     pass
 
 
@@ -77,11 +79,11 @@ def edit_user(db):
     forcing_period = input('Enter forcing period (minutes), enter -- to skip changes\n')
     if forcing_period == '--':
         forcing_period = current_state[0][2]
-        print(f'Username is kept as it is ({forcing_period})')
+        print(f'Forcing period is kept as it is ({forcing_period})')
     timezone = input('Enter timezone (5 or -5), enter -- to skip changes\n')
     if timezone == '--':
-        forcing_period = current_state[0][3]
-        print(f'Username is kept as it is ({forcing_period})')
+        timezone = current_state[0][3]
+        print(f'Timezone is kept as it is ({timezone})')
     db.query_update_user(tg_user_id, forcing_period, timezone, user_name)
     show_user_data(db, tg_user_id)
 
@@ -90,6 +92,7 @@ def start_polling(db):
     polling_period = input('Enter polling period')
     rmd_schedule.init_cron(db, int(polling_period))
     pass
+
 
 def mode_select(db):
     case = int(input("""Select mode:

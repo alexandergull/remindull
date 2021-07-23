@@ -26,7 +26,7 @@ def is_event_time(event_timestamp):
     pass
 
 
-print(get_current_timestamp())
-print(get_time_formatted(get_current_timestamp()))
-while True:
-    is_event_time(int(input('Enter event timestamp:\n')))
+# print(get_current_timestamp())
+# print(get_time_formatted(get_current_timestamp()))
+# while True:
+#     is_event_time(int(input('Enter event timestamp:\n')))
